@@ -1,11 +1,39 @@
-import type { job as jobTsType } from "../global-app-types";
-import type { LoaderFunctionArgs } from "react-router-dom";
-import { Link } from "react-router-dom";
-import { useLoaderData } from "react-router-dom";
+import type { jobSchemaTypeDef } from "../loaders/jobLoader";
+import { Link, type NavigateFunction } from "react-router-dom";
+import { useLoaderData, useLocation, useNavigate } from "react-router-dom";
 import { FaArrowLeft, FaMapMarker } from "react-icons/fa";
+import { toast } from "react-toastify";
+import showConfirmationToast from "../components/ui/showConfirmationToast";
+import axios from "axios";
+
+function handleDelete(jobId: string, navigate: NavigateFunction) {
+  showConfirmationToast({
+    onConfirm: async () => {
+      try {
+        await axios.delete(`/api/jobs/${jobId}`);
+        navigate("/jobs");
+      } catch (error) {
+        toast.error("Failed to delete item. Please try again.");
+        console.error("Delete failed:", error);
+      }
+    },
+    message: "This will permanently delete the item. Are you sure?",
+    confirmText: "Yes, delete it",
+    cancelText: "No, keep it",
+    title: "Delete Confirmation",
+  });
+}
 
 const JobPage = () => {
-  const job = useLoaderData<jobTsType>();
+  const job = useLoaderData<jobSchemaTypeDef>();
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  const pathname = location.pathname;
+  const pathSections = pathname.split("/").filter(Boolean);
+
+  const jobId = pathSections[1];
+
   return (
     <>
       {/* <!-- Go Back --> */}
@@ -20,7 +48,7 @@ const JobPage = () => {
         </div>
       </section>
 
-      <section className="bg-indigo-50 mb-15"> 
+      <section className="bg-indigo-50 mb-15">
         <div className="container m-auto py-10 px-6">
           <div className="grid grid-cols-1 lg:grid-cols-[70%_30%] w-full gap-6">
             <main>
@@ -77,12 +105,15 @@ const JobPage = () => {
               <div className="bg-white p-6 rounded-lg shadow-md mt-6">
                 <h3 className="text-xl font-bold mb-6">Manage Job</h3>
                 <Link
-                  to="/add-job"
+                  to={"/edit-job/".concat(job.id.toString())}
                   className="bg-indigo-500 hover:bg-indigo-600 text-white text-center font-bold py-2 px-4 rounded-full w-full focus:outline-none focus:shadow-outline mt-4 block"
                 >
                   Edit Job
                 </Link>
-                <button className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-full w-full focus:outline-none focus:shadow-outline mt-4 block">
+                <button
+                  onClick={() => handleDelete(jobId.toString(), navigate)}
+                  className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-full w-full focus:outline-none focus:shadow-outline mt-4 block"
+                >
                   Delete Job
                 </button>
               </div>
@@ -94,20 +125,7 @@ const JobPage = () => {
   );
 };
 
-const jobLoader = async ({ params }: LoaderFunctionArgs) => {
-  try {
-    if (typeof params.id === "string") {
-      const res = await fetch("/api/jobs/".concat(params.id));
-      const data = await res.json();
-      return data;
-    }
-  } catch (error) {
-    console.log("Error fetching data", error);
-  }
-};
-
-// eslint-disable-next-line react-refresh/only-export-components
-export { JobPage as default, jobLoader };
+export default JobPage;
 
 /////////// an implementation using useEffect()
 
