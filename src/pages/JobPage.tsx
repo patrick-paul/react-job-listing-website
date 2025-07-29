@@ -1,21 +1,38 @@
 import type { jobSchemaTypeDef } from "../loaders/jobLoader";
-import { Link, type NavigateFunction } from "react-router-dom";
-import { useLoaderData, useLocation, useNavigate } from "react-router-dom";
+import {
+  Link,
+  useLoaderData,
+  useLocation,
+  useNavigate,
+  type NavigateFunction,
+} from "react-router-dom";
+import { useState } from "react";
 import { FaArrowLeft, FaMapMarker } from "react-icons/fa";
 import { toast } from "react-toastify";
 import showConfirmationToast from "../components/ui/showConfirmationToast";
 import axios from "axios";
 
-function handleDelete(jobId: string, navigate: NavigateFunction) {
+function handleDelete(
+  jobId: string,
+  navigate: NavigateFunction,
+  setIsConfirmDialogActive: React.Dispatch<React.SetStateAction<boolean>>
+) {
+  setIsConfirmDialogActive(true);
+
   showConfirmationToast({
     onConfirm: async () => {
       try {
         await axios.delete(`/api/jobs/${jobId}`);
-        navigate("/jobs");
       } catch (error) {
         toast.error("Failed to delete item. Please try again.");
         console.error("Delete failed:", error);
+      } finally {
+        setIsConfirmDialogActive(false);
+        navigate("/jobs");
       }
+    },
+    onCancel: () => {
+      setIsConfirmDialogActive(false);
     },
     message: "This will permanently delete the item. Are you sure?",
     confirmText: "Yes, delete it",
@@ -28,6 +45,7 @@ const JobPage = () => {
   const job = useLoaderData<jobSchemaTypeDef>();
   const location = useLocation();
   const navigate = useNavigate();
+  const [isConfirmDialogActive, setIsConfirmDialogActive] = useState(false);
 
   const pathname = location.pathname;
   const pathSections = pathname.split("/").filter(Boolean);
@@ -104,15 +122,33 @@ const JobPage = () => {
               {/* <!-- Manage --> */}
               <div className="bg-white p-6 rounded-lg shadow-md mt-6">
                 <h3 className="text-xl font-bold mb-6">Manage Job</h3>
-                <Link
-                  to={"/edit-job/".concat(job.id.toString())}
-                  className="bg-indigo-500 hover:bg-indigo-600 text-white text-center font-bold py-2 px-4 rounded-full w-full focus:outline-none focus:shadow-outline mt-4 block"
-                >
-                  Edit Job
-                </Link>
+                {!isConfirmDialogActive ? (
+                  <Link
+                    to={`/edit-job/${job.id}`}
+                    className="text-white text-center font-bold py-2 px-4 rounded-full w-full focus:outline-none focus:shadow-outline mt-4 block bg-indigo-500 hover:bg-indigo-600"
+                  >
+                    Edit Job
+                  </Link>
+                ) : (
+                  <span className="text-white text-center font-bold py-2 px-4 rounded-full w-full mt-4 block bg-indigo-300 cursor-not-allowed">
+                    Edit Job
+                  </span>
+                )}
+
                 <button
-                  onClick={() => handleDelete(jobId.toString(), navigate)}
-                  className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-full w-full focus:outline-none focus:shadow-outline mt-4 block"
+                  onClick={() => {
+                    handleDelete(
+                      jobId.toString(),
+                      navigate,
+                      setIsConfirmDialogActive
+                    );
+                  }}
+                  className={`text-white font-bold py-2 px-4 rounded-full w-full focus:outline-none focus:shadow-outline mt-4 block ${
+                    isConfirmDialogActive
+                      ? "bg-red-300 hover:bg-red-300 cursor-not-allowed"
+                      : "bg-red-500 hover:bg-red-600"
+                  }`}
+                  disabled={isConfirmDialogActive}
                 >
                   Delete Job
                 </button>

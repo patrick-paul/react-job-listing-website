@@ -5,6 +5,7 @@ import { AlertTriangle, Trash2, X } from "lucide-react";
 interface ConfirmationToastProps {
   message?: React.ReactNode;
   onConfirm: () => void;
+  onCancel?: () => void | undefined;
   confirmText?: string;
   cancelText?: string;
   title?: string;
@@ -13,6 +14,7 @@ interface ConfirmationToastProps {
 const showConfirmationToast = ({
   message = "This action cannot be undone. Are you sure you want to proceed?",
   onConfirm,
+  onCancel,
   confirmText = "Delete",
   cancelText = "Cancel",
   title = "Confirm Action",
@@ -31,7 +33,10 @@ const showConfirmationToast = ({
             </div>
           </div>
           <button
-            onClick={closeToast}
+            onClick={() => {
+              onCancel?.();
+              closeToast();
+            }}
             className="flex-shrink-0 p-1 hover:bg-gray-100 rounded-full transition-colors duration-200"
             aria-label="Close dialog"
           >
@@ -47,7 +52,10 @@ const showConfirmationToast = ({
         {/* Action buttons */}
         <div className="flex justify-end gap-3 p-4 pt-3 bg-gray-50">
           <button
-            onClick={closeToast}
+            onClick={() => {
+              onCancel?.();
+              closeToast();
+            }}
             className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200"
           >
             {cancelText}

@@ -341,7 +341,7 @@ const JobForm = ({ jobData }: { jobData: jobSchemaTypeDef | undefined }) => {
                 <button
                   className={`text-white font-bold py-2 px-4 rounded-full w-full focus:outline-none focus:shadow-outline ${
                     isSubmitting
-                      ? " cursor-progress bg-indigo-300 hover:bg-indigo-300"
+                      ? "cursor-not-allowed bg-indigo-300 hover:bg-indigo-300"
                       : "bg-indigo-500 hover:bg-indigo-600"
                   }`}
                   type="submit"
